@@ -41,4 +41,4 @@ class Locations(MethodView):
 api.register_blueprint(blp)
 
 if __name__ == '__main__':
-    app.run()
+    app.run(port=8080)
