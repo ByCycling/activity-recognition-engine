@@ -2,6 +2,7 @@ from flask import Flask
 from flask.views import MethodView
 from flask_smorest import Api, Blueprint
 
+from src.database import Database
 from src.geometry import LocationSchema, Location
 
 
@@ -23,6 +24,8 @@ blp = Blueprint(
     description='Operations on locations'
 )
 
+db = Database()
+
 
 @blp.route('/locations')
 class Locations(MethodView):
@@ -38,4 +41,4 @@ class Locations(MethodView):
 api.register_blueprint(blp)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8000)
+    app.run()
