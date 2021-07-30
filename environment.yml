@@ -1,0 +1,5 @@
+name: activity-recognition-engine
+dependencies:
+  - flask
+  - flask-restful
+  - flask-smorest
