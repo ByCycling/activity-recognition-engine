@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, json
 from flask.views import MethodView
 from flask_smorest import Api, Blueprint
 
@@ -24,18 +24,21 @@ blp = Blueprint(
     description='Operations on locations'
 )
 
-db = Database()
+supabase = Database()
 
 
 @blp.route('/locations')
 class Locations(MethodView):
 
     @blp.arguments(LocationSchema)
-    @blp.response(201, LocationSchema)
+    @blp.response(201)
     def post(self, new_data):
         """Ping a new location"""
         item = Location(**new_data)
-        return item
+
+        response = supabase.client.table('locations').insert({'geojson': json.dumps(item.serialize())}).execute()
+
+        return
 
 
 api.register_blueprint(blp)

@@ -124,6 +124,9 @@ class Location:
         self.geometry = geometry
         self.properties = properties
 
+    def serialize(self):
+        return self.__dict__
+
 
 class LocationSchema(Schema):
     class Meta:
