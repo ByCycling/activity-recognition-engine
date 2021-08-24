@@ -84,7 +84,7 @@ class LocationPropertiesSchema(Schema):
     class Meta:
         ordered = True
 
-    timestamp = fields.Date()
+    timestamp = fields.DateTime('iso')
     speed = fields.Float()
     speed_accuracy = fields.Int()
     heading = fields.Float()
