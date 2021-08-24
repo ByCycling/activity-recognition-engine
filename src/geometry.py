@@ -57,7 +57,7 @@ class BatterySchema(Schema):
 ### Location properties
 
 class LocationProperties:
-    timestamp: datetime
+    timestamp: str
     speed: float
     speed_accuracy: int
     heading: float
@@ -67,7 +67,7 @@ class LocationProperties:
     is_mock: bool
     is_sample: bool
 
-    def __init__(self, timestamp: datetime, speed: float, speed_accuracy: int, heading: float, heading_accuracy: int,
+    def __init__(self, timestamp: str, speed: float, speed_accuracy: int, heading: float, heading_accuracy: int,
                  coordinate_accuracy: int, altitude_accuracy: float, is_mock: bool, is_sample: bool) -> None:
         self.timestamp = timestamp
         self.speed = speed
@@ -84,7 +84,7 @@ class LocationPropertiesSchema(Schema):
     class Meta:
         ordered = True
 
-    timestamp = fields.DateTime()
+    timestamp = fields.Date()
     speed = fields.Float()
     speed_accuracy = fields.Int()
     heading = fields.Float()
