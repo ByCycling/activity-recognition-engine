@@ -3,3 +3,4 @@ dependencies:
   - flask
   - flask-restful
   - flask-smorest
+  - psycopg2
