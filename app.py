@@ -1,3 +1,4 @@
+from dateutil import parser
 from flask import Flask, json, request
 from flask.views import MethodView
 from flask_smorest import Api, Blueprint
@@ -26,6 +27,7 @@ blp = Blueprint(
 
 supabase = Supabase()
 
+
 @app.before_request
 def log_request_info():
     app.logger.debug('Body: %s', request.get_data())
@@ -40,7 +42,11 @@ class Locations(MethodView):
         """Ping a new location"""
         item = Location(**new_data)
 
-        response = supabase.client.table('locations').insert({'geojson': json.dumps(item.serialize())}).execute()
+        response = supabase.client.table('locations').insert(
+            {'timestamp': item.properties['location_properties']['timestamp'].isoformat(),
+             'geojson': json.dumps(item.serialize())}).execute()
+
+        print(response)
 
         return True
 
