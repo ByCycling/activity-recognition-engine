@@ -1,4 +1,6 @@
-from marshmallow import Schema, fields, validates_schema, ValidationError
+from datetime import datetime
+
+from marshmallow import Schema, fields
 
 from typing import List
 
@@ -55,7 +57,7 @@ class BatterySchema(Schema):
 ### Location properties
 
 class LocationProperties:
-    timestamp: int
+    timestamp: datetime
     speed: float
     speed_accuracy: int
     heading: float
@@ -65,7 +67,7 @@ class LocationProperties:
     is_mock: bool
     is_sample: bool
 
-    def __init__(self, timestamp: int, speed: float, speed_accuracy: int, heading: float, heading_accuracy: int,
+    def __init__(self, timestamp: datetime, speed: float, speed_accuracy: int, heading: float, heading_accuracy: int,
                  coordinate_accuracy: int, altitude_accuracy: float, is_mock: bool, is_sample: bool) -> None:
         self.timestamp = timestamp
         self.speed = speed
@@ -82,7 +84,7 @@ class LocationPropertiesSchema(Schema):
     class Meta:
         ordered = True
 
-    timestamp = fields.Int()
+    timestamp = fields.DateTime()
     speed = fields.Float()
     speed_accuracy = fields.Int()
     heading = fields.Float()

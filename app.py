@@ -1,8 +1,8 @@
-from flask import Flask, json
+from flask import Flask, json, request
 from flask.views import MethodView
 from flask_smorest import Api, Blueprint
 
-from src.database import Database
+from src.database import Postgres, Supabase
 from src.geometry import LocationSchema, Location
 
 
@@ -24,7 +24,11 @@ blp = Blueprint(
     description='Operations on locations'
 )
 
-supabase = Database()
+supabase = Supabase()
+
+@app.before_request
+def log_request_info():
+    app.logger.debug('Body: %s', request.get_data())
 
 
 @blp.route('/locations')
@@ -38,7 +42,7 @@ class Locations(MethodView):
 
         response = supabase.client.table('locations').insert({'geojson': json.dumps(item.serialize())}).execute()
 
-        return
+        return True
 
 
 api.register_blueprint(blp)
