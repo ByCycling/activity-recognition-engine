@@ -1,6 +1,13 @@
 name: activity-recognition-engine
+channels:
+  - conda-forge
+  - defaults
 dependencies:
+  - python=3.8
   - flask
-  - flask-restful
   - flask-smorest
+  - flask-restful
+  - pipreqs
   - psycopg2
+  - sentry-sdk[flask]
+  - blinker
