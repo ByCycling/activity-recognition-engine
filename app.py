@@ -45,13 +45,13 @@ supabase = Supabase()
 
 @app.before_request
 def log_request_info():
-    app.logger.debug('Body: %s', request.get_data())
+    app.logger.info('Body: %s', request.get_data())
 
 
 @app.errorhandler(werkzeug.exceptions.UnprocessableEntity)
 def handle_bad_request(e):
     sentry_sdk.capture_exception(e)
-
+    app.logger.error('UnprocessableEntity: caught an exception!')
     return e
 
 
