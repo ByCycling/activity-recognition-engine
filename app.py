@@ -1,9 +1,13 @@
-from dateutil import parser
+import os
+
+import werkzeug
 from flask import Flask, json, request
 from flask.views import MethodView
 from flask_smorest import Api, Blueprint
+from sentry_sdk.integrations.flask import FlaskIntegration
+import sentry_sdk
 
-from src.database import Postgres, Supabase
+from src.database import Supabase
 from src.geometry import LocationSchema, Location
 
 
@@ -18,6 +22,17 @@ class Config:
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+sentry_sdk.init(
+    dsn=os.environ.get("SENTRY_URI"),
+    integrations=[FlaskIntegration()],
+
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    # We recommend adjusting this value in production.
+    traces_sample_rate=1.0
+)
+
 api = Api(app)
 
 blp = Blueprint(
@@ -31,6 +46,13 @@ supabase = Supabase()
 @app.before_request
 def log_request_info():
     app.logger.debug('Body: %s', request.get_data())
+
+
+@app.errorhandler(werkzeug.exceptions.UnprocessableEntity)
+def handle_bad_request(e):
+    sentry_sdk.capture_exception(e)
+
+    return e
 
 
 @blp.route('/locations')
