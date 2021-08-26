@@ -13,3 +13,4 @@ dependencies:
   - blinker
   - pyjwt
   - supabase-py
+  - flask-jwt-extended

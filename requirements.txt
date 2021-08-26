@@ -7,3 +7,4 @@ sentry-sdk[flask]
 blinker
 pyjwt
 supabase-py
+flask-jwt-extended
