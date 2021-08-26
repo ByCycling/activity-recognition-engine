@@ -5,3 +5,4 @@ pipreqs
 psycopg2
 sentry-sdk[flask]
 blinker
+pyjwt

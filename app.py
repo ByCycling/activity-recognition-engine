@@ -1,11 +1,12 @@
 import os
 
+import jwt
+import sentry_sdk
 import werkzeug
 from flask import Flask, json, request
 from flask.views import MethodView
 from flask_smorest import Api, Blueprint
 from sentry_sdk.integrations.flask import FlaskIntegration
-import sentry_sdk
 
 from src.database import Supabase
 from src.geometry import LocationSchema, Location
@@ -18,6 +19,8 @@ class Config:
     OPENAPI_URL_PREFIX = "/docs"
     OPENAPI_SWAGGER_UI_PATH = "/swagger"
     OPENAPI_SWAGGER_UI_URL = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.24.2/"
+    JWT_BLACKLIST_ENABLED = True
+    JWT_BLACKLIST_TOKEN_CHECKS = True
 
 
 app = Flask(__name__)
@@ -37,7 +40,7 @@ api = Api(app)
 
 blp = Blueprint(
     'locations', 'locations',
-    description='Operations on locations'
+    description='Operations on locations',
 )
 
 supabase = Supabase()
@@ -45,6 +48,7 @@ supabase = Supabase()
 
 @app.before_request
 def log_request_info():
+    app.logger.info('Headers: %s', request.headers)
     app.logger.info('Body: %s', request.get_data())
 
 
@@ -62,6 +66,10 @@ class Locations(MethodView):
     @blp.response(201)
     def post(self, new_data):
         """Ping a new location"""
+        token = request.headers.get('Authorization').replace("Bearer ", "")
+        decoded = jwt.decode(token, options={"verify_signature": False}, algorithms=["HS256"])
+        print(decoded)
+
         item = Location(**new_data)
 
         response = supabase.client.table('locations').insert(
