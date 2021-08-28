@@ -58,7 +58,6 @@ def log_request_info():
 @app.errorhandler(werkzeug.exceptions.UnprocessableEntity)
 def handle_bad_request(e):
     sentry_sdk.capture_exception(e)
-    app.logger.error('UnprocessableEntity: caught an exception!')
     return e
 
 
