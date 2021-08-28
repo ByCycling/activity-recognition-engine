@@ -114,17 +114,36 @@ class PropertiesSchema(Schema):
     app_details = fields.Nested(AppDetailsSchema)
 
 
+# Provider
+class Provider():
+    accuracyAuthorization: str
+    enabled: bool
+    gps: bool
+    network: bool
+    status: int
+
+
+class ProviderSchema(Schema):
+    accuracyAuthorization = fields.Str()
+    enabled = fields.Bool()
+    gps = fields.Bool()
+    network = fields.Bool()
+    status = fields.Int()
+
+
 ### Location
 
 class Location:
     type: str
     geometry: Geometry
     properties: Properties
+    provider: Provider
 
-    def __init__(self, type: str, geometry: Geometry, properties: Properties) -> None:
+    def __init__(self, type: str, geometry: Geometry, properties: Properties, provider: Provider = None) -> None:
         self.type = type
         self.geometry = geometry
         self.properties = properties
+        self.provider = provider
 
     def serialize(self):
         return self.__dict__
@@ -137,3 +156,4 @@ class LocationSchema(Schema):
     type = fields.Str(validate=Equal('Feature'), default='Feature')
     geometry = fields.Nested(GeometrySchema)
     properties = fields.Nested(PropertiesSchema)
+    provider = fields.Nested(ProviderSchema)
