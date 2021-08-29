@@ -56,19 +56,32 @@ class BatterySchema(Schema):
 
 ### Location properties
 
+class Activity:
+    type: str
+    confidence: float
+
+
+class ActivitySchema(Schema):
+    type = fields.Str()
+    confidence = fields.Float()
+
+
 class LocationProperties:
     timestamp: str
     speed: float
-    speed_accuracy: int
+    speed_accuracy: float
     heading: float
     heading_accuracy: int
     coordinate_accuracy: int
     altitude_accuracy: float
     is_mock: bool
     is_sample: bool
+    is_moving: bool
+    activity: Activity
 
     def __init__(self, timestamp: str, speed: float, speed_accuracy: int, heading: float, heading_accuracy: int,
-                 coordinate_accuracy: int, altitude_accuracy: float, is_mock: bool, is_sample: bool) -> None:
+                 coordinate_accuracy: int, altitude_accuracy: float, is_mock: bool, is_sample: bool, is_moving: bool,
+                 activity: Activity) -> None:
         self.timestamp = timestamp
         self.speed = speed
         self.speed_accuracy = speed_accuracy
@@ -78,6 +91,8 @@ class LocationProperties:
         self.altitude_accuracy = altitude_accuracy
         self.is_mock = is_mock
         self.is_sample = is_sample
+        self.is_moving = is_moving
+        self.activity = activity
 
 
 class LocationPropertiesSchema(Schema):
@@ -86,13 +101,15 @@ class LocationPropertiesSchema(Schema):
 
     timestamp = fields.DateTime('iso')
     speed = fields.Float()
-    speed_accuracy = fields.Int()
+    speed_accuracy = fields.Float()
     heading = fields.Float()
     heading_accuracy = fields.Int()
     coordinate_accuracy = fields.Int()
     altitude_accuracy = fields.Float()
     is_mock = fields.Bool()
     is_sample = fields.Bool()
+    is_moving = fields.Bool()
+    activity = fields.Nested(ActivitySchema)
 
 
 ### Properties
