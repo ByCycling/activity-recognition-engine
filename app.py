@@ -83,7 +83,7 @@ class Locations(MethodView):
         response = supabase.client.table('locations').insert(
             {
                 'timestamp': item.properties['location_properties']['timestamp'].isoformat(),
-                'geojson': json.dumps(item.serialize()),
+                'geojson': json.loads(json.dumps(item.serialize())),
                 'user_id': "" + current_user
             }).execute()
 
