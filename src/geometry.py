@@ -141,7 +141,7 @@ class Provider():
 
 
 class ProviderSchema(Schema):
-    accuracyAuthorization = fields.Str()
+    accuracyAuthorization = fields.Str(allow_none=True)
     enabled = fields.Bool()
     gps = fields.Bool()
     network = fields.Bool()
