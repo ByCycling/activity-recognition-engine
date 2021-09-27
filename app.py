@@ -112,14 +112,12 @@ class Legacy(MethodView):
         app.logger.info('-- performing second simplification pass --')
         output_df = simplification(output_df)
 
-        app.logger.info('{tag} {text}'.format(tag=colored('[visualization]', 'cyan'), text=show(input_df, output_df)))
-
         def timestamp_to_string(timestamp: datetime64):
             return pd.Timestamp(timestamp).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
 
         output = {
             'startedAt': timestamp_to_string(output_df.index[0]),
-            'endedAt': timestamp_to_string(output_df.index[len(output_df.index)-1]),
+            'endedAt': timestamp_to_string(output_df.index[len(output_df.index) - 1]),
             'locations': []
         }
 
@@ -144,6 +142,12 @@ class Legacy(MethodView):
                     "speed": _data['coordinates.speed']
                 }
             })
+
+        supabase.client.table('filter_results').insert({
+            'image_base64': show(input_df, output_df),
+            'json_before': request.get_json(),
+            'json_after': output
+        }).execute()
 
         return output
 
