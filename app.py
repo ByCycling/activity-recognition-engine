@@ -1,16 +1,19 @@
 import os
 
-import jwt
 import sentry_sdk
 import werkzeug
 from flask import Flask, json, request
 from flask.views import MethodView
 from flask_jwt_extended import jwt_required, JWTManager, current_user
 from flask_smorest import Api, Blueprint
+from numpy import datetime64
 from sentry_sdk.integrations.flask import FlaskIntegration
+from termcolor import colored
 
 from src.database import Supabase
 from src.geometry import LocationSchema, Location
+from src.legacy.graph import show
+from src.legacy.ride import RideSchema
 
 
 class Config:
@@ -49,16 +52,16 @@ blp = Blueprint(
 supabase = Supabase()
 
 
-@app.before_request
-def log_request_info():
-    app.logger.info('Headers: %s', request.headers)
-    app.logger.info('Body: %s', request.get_data())
+# @app.before_request
+# def log_request_info():
+#     app.logger.info('Headers: %s', request.headers)
+#     app.logger.info('Body: %s', request.get_data())
 
 
 @app.errorhandler(werkzeug.exceptions.UnprocessableEntity)
-def handle_bad_request(e):
+def handle_bad_request(e: werkzeug.exceptions.UnprocessableEntity):
     sentry_sdk.capture_exception(e)
-    return e
+    return e.response
 
 
 # Register a callback function that loades a user from your database whenever
@@ -90,6 +93,59 @@ class Locations(MethodView):
         print(response)
 
         return True
+
+
+@blp.route('/legacy/filter')
+class Legacy(MethodView):
+
+    @blp.arguments(RideSchema)
+    @blp.response(201)
+    def post(self, ride_data):
+        """Process ride data"""
+
+        import pandas as pd
+        from src.legacy.simplification import simplification
+
+        input_df = pd.json_normalize(ride_data['locations'])
+
+        output_df = simplification(input_df)
+        app.logger.info('-- performing second simplification pass --')
+        output_df = simplification(output_df)
+
+        app.logger.info('{tag} {text}'.format(tag=colored('[visualization]', 'cyan'), text=show(input_df, output_df)))
+
+        def timestamp_to_string(timestamp: datetime64):
+            return pd.Timestamp(timestamp).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+
+        output = {
+            'startedAt': timestamp_to_string(output_df.index[0]),
+            'endedAt': timestamp_to_string(output_df.index[len(output_df.index)-1]),
+            'locations': []
+        }
+
+        for i in output_df.index:
+            _raw = output_df.loc[i].to_json(orient='columns', default_handler=str)
+            _data = json.loads(_raw)
+
+            output['locations'].append({
+                "timestamp": timestamp_to_string(i),
+                "activity": {
+                    "type": _data['activity.type'],
+                    "confidence": _data['activity.confidence']
+                },
+                "coordinates": {
+                    "coordinateAccuracy": _data['coordinates.coordinateAccuracy'],
+                    "speedAccuracy": _data['coordinates.speedAccuracy'],
+                    "heading": _data['coordinates.heading'],
+                    "altitude": _data['coordinates.altitude'],
+                    "latitude": _data['coordinates.latitude'],
+                    "longitude": _data['coordinates.longitude'],
+                    "headingAccuracy": _data['coordinates.headingAccuracy'],
+                    "speed": _data['coordinates.speed']
+                }
+            })
+
+        return output
 
 
 api.register_blueprint(blp)

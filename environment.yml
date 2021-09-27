@@ -14,3 +14,6 @@ dependencies:
   - pyjwt
   - supabase-py
   - flask-jwt-extended
+  - termcolor
+  - pandas
+  - matplotlib
