@@ -13,6 +13,9 @@ def simplification(_input_df: pd.DataFrame) -> pd.DataFrame:
     # index by timestamp and sort
     _output_df = _output_df.set_index(pd.DatetimeIndex(_output_df['timestamp'].dt.tz_convert('UTC'))).sort_index()
 
+    # remove duplicate indexes
+    _output_df = _output_df[~_output_df.index.duplicated(keep='first')]
+
     _groups = _output_df.groupby(
         (_output_df['activity.type'] !=
          _output_df['activity.type'].shift())
