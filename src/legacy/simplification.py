@@ -21,7 +21,7 @@ def simplification(_input_df: pd.DataFrame) -> pd.DataFrame:
 
     if len(_groups) < 3: return _output_df
 
-    app.logger.info('{} type summary: {}'.format(colored('[starting simplification]', 'green'),
+    app.logger.debug('{} type summary: {}'.format(colored('[starting simplification]', 'green'),
                                                  [x['activity.type'].iloc[0] for i, x in _groups]))
 
     for _index, _group in _groups:
@@ -89,7 +89,7 @@ def simplification(_input_df: pd.DataFrame) -> pd.DataFrame:
             return _current_type == 'on_foot' or _current_type == 'walking'
 
         def log(tag: str, color: str, text: str):
-            app.logger.info('{tag} {text}'.format(tag=colored('[{}]'.format(tag), color), text=text))
+            app.logger.debug('{tag} {text}'.format(tag=colored('[{}]'.format(tag), color), text=text))
 
         if on_foot() and surrounded_by('in_vehicle') and _avg_speed > _max_avg_walking_speed:
             log(text='walking surrounded by in_vehicle with average speed of {}'.format(_avg_speed), tag='case',
@@ -110,5 +110,5 @@ def simplification(_input_df: pd.DataFrame) -> pd.DataFrame:
             simplify()
             continue
 
-    app.logger.info(colored('[simplification completed]', 'green'))
+    app.logger.debug(colored('[simplification completed]', 'green'))
     return _output_df

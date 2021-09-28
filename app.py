@@ -8,7 +8,7 @@ from flask_jwt_extended import jwt_required, JWTManager, current_user
 from flask_smorest import Api, Blueprint
 from numpy import datetime64
 from sentry_sdk.integrations.flask import FlaskIntegration
-from termcolor import colored
+from werkzeug.exceptions import HTTPException
 
 from src.database import Supabase
 from src.geometry import LocationSchema, Location
@@ -39,7 +39,8 @@ sentry_sdk.init(
     # Set traces_sample_rate to 1.0 to capture 100%
     # of transactions for performance monitoring.
     # We recommend adjusting this value in production.
-    traces_sample_rate=1.0
+    traces_sample_rate=1.0,
+    request_bodies='always'
 )
 
 api = Api(app)
@@ -109,7 +110,7 @@ class Legacy(MethodView):
         input_df = pd.json_normalize(ride_data['locations'])
 
         output_df = simplification(input_df)
-        app.logger.info('-- performing second simplification pass --')
+        app.logger.debug('-- performing second simplification pass --')
         output_df = simplification(output_df)
 
         def timestamp_to_string(timestamp: datetime64):
@@ -143,11 +144,16 @@ class Legacy(MethodView):
                 }
             })
 
-        supabase.client.table('filter_results').insert({
+        database_response = supabase.client.table('filter_results').insert({
+            'legacy_ride_id': ride_data['ride_id'],
             'image_base64': show(input_df, output_df),
             'json_before': request.get_json(),
             'json_after': output
         }).execute()
+
+        if database_response['status_code'] > 299:
+            sentry_sdk.capture_exception(
+                HTTPException(description=database_response['data']['message']))
 
         return output
 

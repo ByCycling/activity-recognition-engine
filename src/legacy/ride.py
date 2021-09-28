@@ -49,6 +49,7 @@ class _LocationSchema(Schema):
 
 
 class Ride:
+    ride_id: str
     startedAt: dt.date
     endedAt: dt.date
     locations: List[Location]
@@ -60,6 +61,7 @@ class Ride:
 
 
 class RideSchema(Schema):
+    ride_id = fields.Str()
     startedAt = fields.DateTime()
     endedAt = fields.DateTime()
     locations = fields.List(fields.Nested(_LocationSchema))
