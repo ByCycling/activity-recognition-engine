@@ -7,7 +7,9 @@ from app import app
 def simplification(_input_df: pd.DataFrame) -> pd.DataFrame:
     _output_df = _input_df[
         # discard `still` positions, considered as noise
-        _input_df['activity.type'] != 'still'
+        (_input_df['activity.type'] != 'still') &
+        # discard very inaccurate coordinates
+        (_input_df['coordinates.coordinateAccuracy'] < 500)
         ].copy()
 
     # index by timestamp and sort
@@ -25,7 +27,7 @@ def simplification(_input_df: pd.DataFrame) -> pd.DataFrame:
     if len(_groups) < 3: return _output_df
 
     app.logger.debug('{} type summary: {}'.format(colored('[starting simplification]', 'green'),
-                                                 [x['activity.type'].iloc[0] for i, x in _groups]))
+                                                  [x['activity.type'].iloc[0] for i, x in _groups]))
 
     for _index, _group in _groups:
         _current_type = _group['activity.type'].iloc[0]
