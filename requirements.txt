@@ -11,3 +11,4 @@ flask-jwt-extended
 termcolor
 pandas
 matplotlib
+gunicorn
