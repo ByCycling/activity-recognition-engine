@@ -1,8 +1,10 @@
+import datetime
 import os
 
+from src.extensions import db
 import sentry_sdk
 import werkzeug
-from flask import Flask, json, request
+from flask import Flask, json, request, jsonify
 from flask.views import MethodView
 from flask_jwt_extended import jwt_required, JWTManager, current_user
 from flask_smorest import Api, Blueprint
@@ -10,8 +12,9 @@ from numpy import datetime64
 from sentry_sdk.integrations.flask import FlaskIntegration
 from werkzeug.exceptions import HTTPException
 
-from src.database import Supabase
-from src.geometry import LocationSchema, Location
+from src.database.database import Supabase
+from src.database.locations_table import LocationTable
+from src.schemas.location import LocationSchema, Location
 from src.legacy.graph import show
 from src.legacy.ride import RideSchema
 
@@ -25,10 +28,23 @@ class Config:
     OPENAPI_SWAGGER_UI_URL = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.24.2/"
     JWT_HEADER_NAME = 'Authorization'
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('POSTGRES_URI')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
-app = Flask(__name__)
-app.config.from_object(Config)
+def create_app(config_object=Config):
+    app = Flask(__name__.split('.')[0])
+    app.config.from_object(config_object)
+    register_extensions(app)
+
+    return app
+
+
+def register_extensions(app):
+    db.init_app(app)
+
+
+app = create_app()
 
 jwt = JWTManager(app)
 
@@ -94,6 +110,33 @@ class Locations(MethodView):
         print(response)
 
         return True
+
+    @blp.response(200, LocationSchema)
+    @jwt_required(locations='headers')
+    def get(self):
+        """Fetch locations"""
+
+        def to_date(date_string):
+            try:
+                return datetime.datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%S").date()
+            except ValueError:
+                raise ValueError('{} is not valid date in the format YYYY-MM-DDTH:M:S'.format(date_string))
+
+        start = to_date(request.args.get('start', default=datetime.date.today().isoformat()))
+        end = to_date(request.args.get('end', default=datetime.date.today().isoformat()))
+
+        query = LocationTable.query.filter(
+            LocationTable.timestamp >= start,
+            LocationTable.timestamp <= end
+        ).all()
+
+        def format_timestamp(geojson: dict):
+            geojson['properties']['location_properties']['timestamp'] = datetime.datetime.strptime(
+                geojson['properties']['location_properties']['timestamp'], '%a, %d %b %Y %H:%M:%S %Z'
+            ).strftime("%Y-%m-%dT%H:%M:%S")
+            return geojson
+
+        return jsonify(list(map(lambda x: format_timestamp(x.geojson), query)))
 
 
 @blp.route('/legacy/filter')
