@@ -13,3 +13,4 @@ pandas
 matplotlib
 gunicorn
 flask_sqlalchemy
+psycopg2-binary
