@@ -2,7 +2,6 @@ flask
 flask-smorest
 flask-restful
 pipreqs
-psycopg2
 sentry-sdk[flask]
 blinker
 pyjwt
